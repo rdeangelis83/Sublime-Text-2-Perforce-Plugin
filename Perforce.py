@@ -47,7 +47,7 @@ class PerforceP4CONFIGHandler(sublime_plugin.EventListener):
             global_folder, filename = os.path.split(view.file_name())
 
 # Executed at startup to store the path of the plugin... necessary to open files relative to the plugin
-perforceplugin_dir = os.getcwdu()
+perforceplugin_dir = os.getcwd()
 
 # Utility functions
 def ConstructCommand(in_command):
@@ -82,6 +82,8 @@ def GetUserFromClientspec():
     command = ConstructCommand('p4 info')
     p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=global_folder, shell=True)
     result, err = p.communicate()
+    result = result.decode()
+    err = err.decode()
 
     if(err):
         WarnUser("usererr " + err.strip())
@@ -107,6 +109,8 @@ def GetClientRoot(in_dir):
     command = ConstructCommand('p4 info')
     p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=global_folder, shell=True)
     result, err = p.communicate()
+    result = result.decode()
+    err = err.decode()
 
     if(err):
         WarnUser(err.strip())
@@ -177,6 +181,9 @@ def GetPendingChangelists():
 
     p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=global_folder, shell=True)
     result, err = p.communicate()
+    result = result.decode()
+    err = err.decode()
+
     if(not err):
         return 1, result
     return 0, result
@@ -186,6 +193,8 @@ def AppendToChangelistDescription(changelist, input):
     command = ConstructCommand('p4 change -o ' + changelist)
     p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=global_folder, shell=True)
     result, err = p.communicate()
+    result = result.decode()
+    err = err.decode()
 
     if(err):
         return 0, err
@@ -223,7 +232,9 @@ def AppendToChangelistDescription(changelist, input):
     command = ConstructCommand('p4 change -i < ' + temp_changelist_description_file.name)
     p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=global_folder, shell=True)
     result, err = p.communicate()
-
+    result = result.decode()
+    err = err.decode()
+    
     # Clean up
     os.unlink(temp_changelist_description_file.name)
 
@@ -236,7 +247,9 @@ def PerforceCommandOnFile(in_command, in_folder, in_filename):
     command = ConstructCommand('p4 ' + in_command + ' "' + in_filename + '"')
     p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=global_folder, shell=True)
     result, err = p.communicate()
-
+    result = result.decode()
+    err = err.decode()
+    
     if(not err):
         return 1, result.strip()
     else:
@@ -248,11 +261,11 @@ def WarnUser(message):
         if(perforce_settings.get('perforce_log_warnings_to_status')):
             sublime.status_message("Perforce [warning]: " + message)
         else:
-            print "Perforce [warning]: " + message
+            print ("Perforce [warning]: " + message)
 
 def LogResults(success, message):
     if(success >= 0):
-        print "Perforce: " + message
+        print ("Perforce: " + message)
     else:
         WarnUser(message);
 
@@ -439,7 +452,7 @@ def Revert(in_folder, in_filename):
     return PerforceCommandOnFile("revert", in_folder, in_filename);
 
 class PerforceRevertCommand(sublime_plugin.TextCommand):
-    def run_(self, args): # revert cannot be called when an Edit object exists, manually handle the run routine
+    def run_(self, *args): # revert cannot be called when an Edit object exists, manually handle the run routine
         if(self.view.file_name()):
             folder_name, filename = os.path.split(self.view.file_name())
 
@@ -597,6 +610,9 @@ class ListCheckedOutFilesThread(threading.Thread):
         command = ConstructCommand('p4 opened -c ' + in_changelistline[1] + ' -u ' + currentuser)
         p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=global_folder, shell=True)
         result, err = p.communicate()
+        result = result.decode()
+        err = err.decode()
+
         if(not err):
             lines = result.splitlines()
             for line in lines:
@@ -629,6 +645,8 @@ class ListCheckedOutFilesThread(threading.Thread):
 
         p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=global_folder, shell=True)
         result, err = p.communicate()
+        result = result.decode()
+        err = err.decode()
 
         if(not err):
             changelists = result.splitlines()
@@ -670,7 +688,9 @@ def CreateChangelist(description):
     command = ConstructCommand('p4 change -o')   
     p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=global_folder, shell=True)
     result, err = p.communicate()
-
+    result = result.decode()
+    err = err.decode()
+    
     if(err):
         return 0, err
 
@@ -696,6 +716,8 @@ def CreateChangelist(description):
     command = ConstructCommand('p4 change -i < ' + temp_changelist_description_file.name)
     p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=global_folder, shell=True)
     result, err = p.communicate()
+    result = result.decode()
+    err = err.decode()
 
     # Clean up
     os.unlink(temp_changelist_description_file.name)
@@ -728,6 +750,8 @@ def MoveFileToChangelist(in_filename, in_changelist):
     command = ConstructCommand('p4 reopen -c ' + in_changelist + ' "' + filename + '"')
     p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=global_folder, shell=True)
     result, err = p.communicate()
+    result = result.decode()
+    err = err.decode()
 
     if(err):
         return 0, err
@@ -897,6 +921,9 @@ class SubmitThread(threading.Thread):
         command = ConstructCommand('p4 opened -c default -u ' + currentuser)
         p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=global_folder, shell=True)
         result, err = p.communicate()
+        result = result.decode()
+        err = err.decode()
+        
         if err:
             resultchangelists.pop()
 
@@ -937,6 +964,8 @@ class SubmitThread(threading.Thread):
             command = ConstructCommand('p4 submit')
         p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=global_folder, shell=True)
         result, err = p.communicate()
+        result = result.decode()
+        err = err.decode()
     
     def on_description_change(self, input):
         pass
@@ -1024,7 +1053,9 @@ class ShelveClCommand(threading.Thread):
         command = ConstructCommand("p4 " + cmdString)
         p = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE, cwd=global_folder, shell=True)
         result, err = p.communicate()
-
+        result = result.decode()
+        err = err.decode()
+        
         if(err):
             WarnUser("usererr " + err.strip())
             return -1 
